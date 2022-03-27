@@ -2,6 +2,8 @@
 #include <vector>
 #include <math.h>
 
+int moveCount = 0;
+
 bool playerMove = true; // true for X
 bool gameOn = true;
 char tokens[3][3] = {{'1', '2', '3'}, {'4', '5', '6'}, {'7', '8', '9'}};
@@ -10,7 +12,7 @@ char tokens[3][3] = {{'1', '2', '3'}, {'4', '5', '6'}, {'7', '8', '9'}};
 
 bool checkValidMove(int x, int y)
 {
-    if (x > sqrt(sizeof(tokens)) or y > sqrt(sizeof(tokens)))
+    if (x > sqrt(sizeof(tokens)) - 1 or y > sqrt(sizeof(tokens)) - 1)
     {
         std::cout << "-- Invalid move: number out of bounds --\n";
         return false;
@@ -38,29 +40,52 @@ void drawBoard()
     //     str = "";
     // }
 
+    // create string
     std::string str;
+    // for each line & column of the board,
     for (int i = 0; i < sqrt(sizeof(tokens)); i++)
     {
         for (int j = 0; j < sqrt(sizeof(tokens)); j++)
         {
+            // add the char to the string
             str += tokens[i][j];
         }
+        // print the string
         std::cout << str << "\n";
+        // clear the string
         str = "";
     }
 }
 
-bool checkGameOver()
+bool playerWon()
 {
+    bool column = false, row = true;
     for (int i = 0; i < sqrt(sizeof(tokens)); i++)
     {
-        
+        // for each column, check each row, if they don't match, return false
+        //
+        char c = tokens[i][0];  // column
+        char c2 = tokens[0][i]; // row
+
+        for (int j = 0; j < sqrt(sizeof(tokens)); j++)
+        {
+            if (tokens[i][j] != c)
+            {
+                column = false;
+            }
+            if (tokens[j][i] != c2)
+            {
+                row = false;
+            }
+        }
     }
+    return column or row;
 }
 
 void place(char token, int pos)
 {
     /*
+
         0 = 0,0
         1 = 0,1
         2 = 0,2
@@ -73,12 +98,17 @@ void place(char token, int pos)
         y = floor(int(pos)/3)
         x = int(pos) % 3
     */
+    // convert one value to x,y coords
     int x = static_cast<int>(floor(pos / 3));
     int y = pos % 3;
+
     if (checkValidMove(x, y))
     {
+        // set the char to the player's token
         tokens[x][y] = token;
+        // other player's turn
         playerMove = !playerMove;
+        moveCount++;
     }
 
     // if (token == 'X')
@@ -114,7 +144,25 @@ int main()
     drawBoard();
     while (gameOn)
     {
-        getMove();
-        drawBoard();
+        if (!playerWon())
+        {
+            if (moveCount >= sizeof(tokens))
+            {
+                std::cout << "-- TIE --\n";
+
+                break;
+            }
+            getMove();
+            drawBoard();
+        }
+    }
+    if (playerWon())
+    {
+        char winner = 'O';
+        if (playerMove)
+        {
+            winner = 'X';
+        }
+        std::cout << "-- " << winner << " won! --\n";
     }
 }
